@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: healthy
+  namespace: default
+spec:
+  replicas: 5
+  selector:
+    matchLabels: {app: healthy}
+  template:
+    metadata:
+      labels: {app: healthy}
+    spec:
+      containers:
+        - name: pause
+          image: registry.k8s.io/pause:3.9
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: victim
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: victim}
+  template:
+    metadata:
+      labels: {app: victim}
+    spec:
+      containers:
+        - name: crasher
+          image: busybox:1.36
+          # AIDEV-NOTE: 20 s alive then exit 1 -> CrashLoopBackOff, the incident to replay
+          command: ["sh", "-c", "echo up; sleep 20; echo dying; exit 1"]
